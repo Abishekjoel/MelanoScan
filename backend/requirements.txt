@@ -1,0 +1,10 @@
+Django==6.1.1
+djangorestframework==3.18.1
+django-cors-headers==4.9.0
+pillow==12.3.0
+numpy==2.5.3
+opencv-python-headless==5.0.0.93
+# PyTorch with CUDA 12.4 (tested). Install separately if you need a different build:
+#   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0
+torchvision==0.21.0

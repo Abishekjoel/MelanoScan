@@ -1,0 +1,42 @@
+# Datasets (large, third-party licensed) — download separately, see README
+HAM10000_images_part_1/
+HAM10000_images_part_2/
+HAM10000_segmentations_lesion_tschandl/
+HAM10000_metadata.csv
+hmnist_*.csv
+__MACOSX/
+
+# Trained weights (too large for git; retrain with the scripts in training/)
+*.pt
+*.pth
+
+# Generated training files (contain local absolute paths)
+training/ham10000_labels.csv
+training/*.log
+training/*.err
+
+# Local patient data and uploads
+backend/db.sqlite3
+backend/media/
+
+# Environments and build output
+backend/.venv/
+.venv/
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+
+# Stray duplicate Vite scaffold created by an early command
+backend/..frontend/
+
+# Reference paper
+*.pdf
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/

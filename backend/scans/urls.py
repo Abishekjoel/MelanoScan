@@ -8,6 +8,7 @@ urlpatterns = [
     path("patients/<int:pk>/", views.PatientDetail.as_view()),
     path("scans/", views.ScanList.as_view()),
     path("scans/<int:pk>/", views.ScanDetail.as_view()),
+    path("scans/<int:pk>/report.pdf", views.ScanReportPDF.as_view()),
     path("stats/", views.StatsView.as_view()),
     path("health/", views.HealthView.as_view()),
 ]

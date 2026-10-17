@@ -18,7 +18,7 @@ and Grad-CAM explanations. It does **not** reproduce the paper's reported number
 
 ## App pages
 Landing (`/`), dashboard, new scan (optionally attached to a patient), patients (search, add/edit),
-patient detail (details + scans + risk trend), history (filter), scan report (notes, print).
+patient detail (details + scans + risk trend), history (filter), scan report (notes, PDF download with photo, lesion outline and Grad-CAM++).
 There is no login: anyone who can reach the server can see all data. Add authentication before any shared or real use.
 
 ## Not in this repository
@@ -29,6 +29,7 @@ Datasets and trained weights are excluded (size and licensing). To use the app y
 3. Backend deps: `pip install -r backend/requirements.txt`; frontend: copy `frontend/.env.example` to `frontend/.env`.
 
 ## Run
+pip install -r requirements.txt
 ```powershell
 # backend
 cd backend

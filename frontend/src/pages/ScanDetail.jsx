@@ -40,11 +40,11 @@ export default function ScanDetail() {
 
   return (
     <>
-      <Link to={scan.patient ? `/app/patients/${scan.patient}` : '/app/history'} className="back no-print">← Back</Link>
+      <Link to={scan.patient ? `/app/patients/${scan.patient}` : '/app/history'} className="back">← Back</Link>
       <div className="page-head">
         <div><h1>Scan report</h1><p className="muted">{fmtDateTime(scan.created_at)}</p></div>
-        <div className="actions no-print">
-          <button className="btn ghost" onClick={() => window.print()}><Icon name="print" size={16} /> Print</button>
+        <div className="actions">
+          <a className="btn ghost" href={`${import.meta.env.VITE_API_URL}/scans/${scan.id}/report.pdf`}><Icon name="print" size={16} /> Download PDF</a>
           <button className="btn ghost danger" onClick={remove}><Icon name="trash" size={16} /> Delete</button>
         </div>
       </div>
@@ -62,17 +62,16 @@ export default function ScanDetail() {
           <dl className="kv">
             <div><dt>Patient</dt><dd>{scan.patient ? <Link className="link" to={`/app/patients/${scan.patient}`}>{scan.patient_name} ({scan.patient_code})</Link> : 'Quick scan'}</dd></div>
           </dl>
-          <label className="no-print">Body site
+          <label >Body site
             <select value={site} onChange={(e) => setSite(e.target.value)}>
               <option value="">Not specified</option>
               {BODY_SITES.map((s) => <option key={s}>{s}</option>)}
             </select>
           </label>
-          <p className="print-only">Body site: {scan.body_site || 'Not specified'}</p>
           <label>Clinical notes
             <textarea rows="4" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </label>
-          <div className="actions no-print">
+          <div className="actions">
             <button className="btn primary" onClick={save}>{saved ? 'Saved ✓' : 'Save notes'}</button>
           </div>
           <p className="hint">AI output is a screening aid only and does not constitute a diagnosis.</p>

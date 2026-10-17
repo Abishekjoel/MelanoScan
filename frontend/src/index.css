@@ -184,13 +184,3 @@ tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--surf
   .hero-art { min-height: 300px; } .nav-text { display: none; }
   .form-grid { grid-template-columns: 1fr; } .span-2 { grid-column: auto; }
 }
-
-/* ---------- print (scan report) ---------- */
-.print-only { display: none; }
-@media print {
-  .sidebar, .no-print, .footnote, .tabs { display: none !important; }
-  .print-only { display: block; margin-bottom: 10px; }
-  .shell { display: block; } .content { padding: 0; max-width: none; }
-  .card { box-shadow: none; break-inside: avoid; } body { background: #fff; color: #000; }
-  .two-col { grid-template-columns: 1fr 1fr; }
-}

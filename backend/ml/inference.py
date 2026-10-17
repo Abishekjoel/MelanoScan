@@ -96,24 +96,65 @@ def preprocess(img_rgb):
 
 
 def _gradcam(model, tensor, device):
+    """Grad-CAM++ on the fused feature map (Chattopadhay et al., 2018)."""
     model.zero_grad()
     logit, fused, _ = model(tensor.to(device).requires_grad_(True), return_maps=True)
     fused.retain_grad()
     logit.sum().backward()
-    weights = fused.grad.mean((2, 3), keepdim=True)
+    g = fused.grad
+    g2, g3 = g ** 2, g ** 3
+    denom = 2 * g2 + fused.sum((2, 3), keepdim=True) * g3
+    alpha = g2 / torch.where(denom != 0, denom, torch.ones_like(denom))
+    weights = (alpha * torch.relu(g)).sum((2, 3), keepdim=True)
     cam = torch.relu((weights * fused).sum(1)).squeeze(0).detach().cpu().numpy()
     cam = cam - cam.min()
     return cam / cam.max() if cam.max() > 0 else cam
 
 
-def _overlay_png(img_rgb, cam):
+def overlay_array(img_rgb, cam):
     cam = cv2.resize(cam, (img_rgb.shape[1], img_rgb.shape[0]))
     heat = cv2.applyColorMap((cam * 255).astype(np.uint8), cv2.COLORMAP_JET)
     heat = cv2.cvtColor(heat, cv2.COLOR_BGR2RGB)
-    blend = (0.55 * img_rgb + 0.45 * heat).astype(np.uint8)
+    return (0.55 * img_rgb + 0.45 * heat).astype(np.uint8)
+
+
+def _overlay_png(img_rgb, cam):
     buf = io.BytesIO()
-    Image.fromarray(blend).save(buf, format="PNG")
+    Image.fromarray(overlay_array(img_rgb, cam)).save(buf, format="PNG")
     return buf.getvalue()
+
+
+def lesion_crop(img_rgb, outline, pad=0.12):
+    """Lesion cut-out: background outside the segmented outline is dimmed, contour drawn, cropped to the box.
+    Returns None when there is no outline."""
+    if not outline:
+        return None
+    h, w = img_rgb.shape[:2]
+    pts = np.array([[x * w, y * h] for x, y in outline], dtype=np.int32)
+    mask = np.zeros((h, w), np.uint8)
+    cv2.fillPoly(mask, [pts], 1)
+    out = img_rgb.copy()
+    out[mask == 0] = (out[mask == 0] * 0.18).astype(np.uint8)
+    cv2.polylines(out, [pts], True, (0, 230, 160), max(2, round(min(h, w) / 220)), cv2.LINE_AA)
+    x, y, bw, bh = cv2.boundingRect(pts)
+    px, py = int(bw * pad), int(bh * pad)
+    return out[max(0, y - py):min(h, y + bh + py), max(0, x - px):min(w, x + bw + px)]
+
+
+def analyze(pil_image):
+    """Everything the PDF report needs: probability, lesion outline, Grad-CAM++ overlay and lesion crop."""
+    img_rgb = np.array(pil_image.convert("RGB"))
+    model, trained = get_model()
+    tensor = preprocess(img_rgb)
+    cam = _gradcam(model, tensor, _state["device"])
+    with torch.no_grad():
+        prob = torch.sigmoid(model(tensor.to(_state["device"]))).item()
+    lesion = segment_lesion(img_rgb)
+    outline = lesion["outline"] if lesion else None
+    return {
+        "probability": prob, "model_trained": trained, "image": img_rgb,
+        "cam_overlay": overlay_array(img_rgb, cam), "lesion": lesion_crop(img_rgb, outline),
+    }
 
 
 def predict(pil_image):

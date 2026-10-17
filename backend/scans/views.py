@@ -3,9 +3,11 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from PIL import Image, UnidentifiedImageError
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +15,7 @@ from rest_framework.views import APIView
 from ml import inference
 
 from .models import Patient, Scan
+from .report import build_pdf
 from .serializers import PatientSerializer, ScanSerializer
 
 ALLOWED_FORMATS = {"JPEG", "PNG", "WEBP", "BMP"}
@@ -102,6 +105,14 @@ class ScanDetail(generics.RetrieveUpdateDestroyAPIView):
         instance.image.delete(save=False)
         instance.heatmap.delete(save=False)
         instance.delete()
+
+
+class ScanReportPDF(APIView):
+    def get(self, request, pk):
+        scan = get_object_or_404(Scan.objects.select_related("patient"), pk=pk)
+        resp = HttpResponse(build_pdf(scan), content_type="application/pdf")
+        resp["Content-Disposition"] = f'attachment; filename="melanoscan-report-{scan.pk}.pdf"'
+        return resp
 
 
 class StatsView(APIView):
